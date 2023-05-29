@@ -2,7 +2,10 @@ import numpy as np
 import sigpy as sp
 from scipy import signal
 from scipy.optimize import lsq_linear
+from scipy.signal import find_peaks
+import scipy.integrate as integ
 import os
+import cfl
 
 def normalize(sig, var=True):
     ''' Subtract mean and divide by std for 1D signal '''
@@ -140,9 +143,9 @@ def get_accel_data(inpdir, fname=None):
 def dbl_int(accel, tr=8.7e-3, cutoff=1, get_v=False):
     ''' Double integrate acceleration -> displacement '''
     # Filter out fluctuations in accelerometer signal
-    accel_filt = proc.filter_sig(accel, cutoff=cutoff, fs=1/tr, order=6, btype='high')
+    accel_filt = filter_sig(accel, cutoff=cutoff, fs=1/tr, order=6, btype='high')
     accel_v = integ.cumtrapz(accel_filt, dx=tr, initial=0)
-    accel_d = integ.cumtrapz(proc.normalize(accel_v, var=False), dx=tr, initial=0)
+    accel_d = integ.cumtrapz(normalize(accel_v, var=False), dx=tr, initial=0)
     if get_v is True: # Get velocity
         return accel_d, accel_v
     else:
@@ -179,8 +182,8 @@ def load_data(inpdir, ecg_index=1, cutoff=4):
     accel_d = get_accel_d(accel, tr=tr, cutoff=cutoff)
     
     # Load peripherals
-    [ecg, ppg] = proc.get_physio_waveforms(inpdir,
-                                           bpt_len=bpt.shape[1]*tr,
-                                           index=ecg_index)
+    [ecg, ppg] = get_physio_waveforms(inpdir,
+                                      bpt_len=bpt.shape[1]*tr,
+                                      index=ecg_index)
     
     return bpt, ecg, ppg, accel_d

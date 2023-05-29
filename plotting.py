@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import processing as proc
+import matplotlib.colors as mcolors
 
 def plot_data(data_mat, c_mat, color_dict, labels,
               figsize=(10,10), shift=-1,
@@ -8,7 +9,7 @@ def plot_data(data_mat, c_mat, color_dict, labels,
               xlim=np.array([0,10]), dashed_line=True):
     ''' Plot stack of data in one plot ''' 
     # Get percent modulation
-    t = proc.get_t_axis(bpt.shape[1], delta_t=tr)
+    t = proc.get_t_axis(data_mat.shape[0], delta_t=tr)
     
     # Calculate time indices
     xlim_n = (xlim*1/tr).astype(int)
@@ -49,7 +50,7 @@ def plot_data(data_mat, c_mat, color_dict, labels,
         
     return ax
     
-def plot_bpt_pt(bpt, cmat, title="Raw BPT vs PT Magnitude"):
+def plot_bpt_pt(bpt, c_mat, tr=8.7e-3, title="Raw BPT vs PT Magnitude"):
     ''' Plot BPT vs PT on the same plot '''
     c_mat_r = c_mat.ravel()
     color_dict = make_color_dict(np.unique(c_mat_r))
@@ -62,11 +63,11 @@ def plot_bpt_pt(bpt, cmat, title="Raw BPT vs PT Magnitude"):
     data_mat = np.hstack((pt_mod[...,c_mat[0,:]], bpt_mod[...,c_mat[1,:]]))
     mean_percent_mod = np.mean(np.abs(data_mat), axis=0)
 
-    ax = plot_data(data_mat, c_mat_r, color_dict, labels=mean_percent_mod, shift=-8, dashed_line=True)
+    ax = plot_data(data_mat, c_mat_r, color_dict, labels=mean_percent_mod, shift=-8, dashed_line=True, tr=tr)
     ax.set_title(title)
 
     
-def plot_bpt_accel(bpt, accel_d, ecg, ppg, figsize=(10,10), shift=-8, c=[30,24], title="BPT vs peripherals"):
+def plot_bpt_accel(bpt, accel_d, ecg, ppg, figsize=(10,10), shift=-8, c=[30,24], ecg_scale=-1, tr=8.7e-3, title="BPT vs peripherals"):
     ''' Plot BPT and PT vs accelerometer and peripherals '''
     t = proc.get_t_axis(bpt.shape[1], delta_t=tr)
     t_ecg = proc.get_t_axis(ecg.shape[0], delta_t=1e-3)
@@ -84,7 +85,7 @@ def plot_bpt_accel(bpt, accel_d, ecg, ppg, figsize=(10,10), shift=-8, c=[30,24],
 
     # Peripherals
     ax.plot(t_ppg, proc.normalize(ppg) + 3*shift, color=colors[3])
-    ax.plot(t_ecg, -1*proc.normalize(ecg) + 4*shift, color=colors[4])
+    ax.plot(t_ecg, ecg_scale*proc.normalize(ecg) + 4*shift, color=colors[4])
 
     # Set xlimits
     ax.set_xlim([0,10])
